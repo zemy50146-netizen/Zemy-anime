@@ -30,6 +30,19 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
       - name: Find Android project
         id: project
@@ -40,21 +53,22 @@ jobs:
             -not -path '*/.gradle/*' | head -n 1)
 
           if [ -z "$SETTINGS" ]; then
-            echo "::error::settings.gradle(.kts) not found"
+            echo "::error::Android project settings file not found"
             exit 1
           fi
 
           PROJECT_DIR=$(dirname "$SETTINGS")
           echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
-          echo "Android project: $PROJECT_DIR"
+          echo "Found project: $PROJECT_DIR"
 
-      - name: Check app module
+      - name: Check Android module
         working-directory: ${{ steps.project.outputs.project_dir }}
         run: |
           if [ ! -f app/build.gradle ] && [ ! -f app/build.gradle.kts ]; then
             echo "::error::Android app module not found"
             exit 1
           fi
+
           echo "Android app module found"
 
       - name: Build debug APK
@@ -67,4 +81,5 @@ jobs:
           name: ZEMY-ANIME-APK
           path: ${{ steps.project.outputs.project_dir }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+          retention-days: 7
           
