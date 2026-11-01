@@ -29,18 +29,15 @@ jobs:
           gradle-version: '8.9'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
+          packages: 'platform-tools'
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: false
-
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses || true
 
       - name: Install Android SDK packages
         run: |
           sdkmanager \
-            "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
 
@@ -69,8 +66,6 @@ jobs:
             exit 1
           fi
 
-          echo "Android app module found"
-
       - name: Build debug APK
         working-directory: ${{ steps.project.outputs.project_dir }}
         run: gradle assembleDebug --stacktrace
@@ -82,4 +77,3 @@ jobs:
           path: ${{ steps.project.outputs.project_dir }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 7
-          
